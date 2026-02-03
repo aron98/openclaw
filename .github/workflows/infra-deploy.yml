@@ -50,9 +50,20 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: echo "instance_id=$(tofu output -raw instance_id)" >> "$GITHUB_OUTPUT"
 
+      - name: Deploy bootstrap scripts
+        run: |
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceids,Values=${{ steps.tf.outputs.instance_id }}" \
+            --parameters 'commands=[
+              "sudo bash /var/lib/openclaw/workspace/openclaw/infra/bootstrap/deploy.sh"
+            ]'
+
       - name: Restart openclawd
         run: |
           aws ssm send-command \
             --document-name "AWS-RunShellScript" \
             --targets "Key=instanceids,Values=${{ steps.tf.outputs.instance_id }}" \
-            --parameters "commands=sudo systemctl restart openclawd"
+            --parameters 'commands=[
+              "sudo systemctl restart openclawd"
+            ]'
