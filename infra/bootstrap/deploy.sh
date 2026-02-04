@@ -10,6 +10,7 @@ BOOTSTRAP_DIR="$OPENCLAW_REPO_DIR/infra/bootstrap"
 
 echo "Deploying OpenClaw bootstrap scripts..."
 
+cd "$OPENCLAW_REPO_DIR"
 pnpm install --frozen-lockfile
 pnpm ui:build || echo "UI build skipped or failed, continuing..."
 pnpm build
