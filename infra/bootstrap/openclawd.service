@@ -17,7 +17,7 @@ Environment=OPENCLAW_CONFIG_PATH=/var/lib/openclaw/openclaw.json
 # DEV_REPO: Where the agent reads source code (workspace, read-only for runtime)
 # RUNTIME_DIR: Where the protected runtime lives (built artifacts)
 Environment=OPENCLAW_REPO_DIR=/var/lib/openclaw/workspace/openclaw
-Environment=OPENCLAW_RUNTIME_DIR=/var/lib/openclaw/runtime
+Environment=OPENCLAW_RUNTIME_DIR=/opt/openclaw/runtime
 Environment=OPENCLAW_REPO_URL=https://github.com/aron98/openclaw.git
 Environment=OPENCLAW_REPO_REF=main
 
@@ -39,7 +39,7 @@ ExecStartPre=/usr/local/bin/openclaw-refresh
 ExecStartPre=/usr/local/bin/openclaw-sync-secrets arn:aws:secretsmanager:eu-central-1:548135083003:secret:openclaw/prod-nTa8N2
 
 # Start from the PROTECTED runtime directory, not the dev repo
-ExecStart=/usr/bin/env node /var/lib/openclaw/runtime/openclaw.mjs gateway --port 18789 --verbose
+ExecStart=/usr/bin/env node /opt/openclaw/runtime/openclaw.mjs gateway --port 18789 --verbose
 
 WorkingDirectory=/var/lib/openclaw
 Restart=on-failure
