@@ -11,10 +11,6 @@ permissions:
 
 env:
   AWS_REGION: eu-central-1
-  TF_STATE_BUCKET: openclaw-tfstate-aron98
-  TF_STATE_TABLE: openclaw-tf-lock
-  TF_STATE_KEY: openclaw/prod/terraform.tfstate
-  TF_WORKING_DIR: infra
 
 jobs:
   deploy:
@@ -29,40 +25,26 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
-
-      - name: OpenTofu Init (for reading state)
-        working-directory: ${{ env.TF_WORKING_DIR }}
+      - name: Find OpenClaw instance
+        id: instance
         run: |
-          tofu init \
-            -backend-config="bucket=${TF_STATE_BUCKET}" \
-            -backend-config="key=${TF_STATE_KEY}" \
-            -backend-config="region=${AWS_REGION}" \
-            -backend-config="dynamodb_table=${TF_STATE_TABLE}"
-
-      - name: Detect Infrastructure Drift
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: |
-          echo "Checking for infrastructure drift..."
-          tofu plan -detailed-exitcode || EXIT_CODE=$?
-          if [ "${EXIT_CODE:-0}" -eq 2 ]; then
-            echo "::warning::Infrastructure drift detected! Run 'tofu apply' locally to reconcile."
-          elif [ "${EXIT_CODE:-0}" -eq 1 ]; then
-            echo "::error::Terraform plan failed"
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --region ${{ env.AWS_REGION }} \
+            --filters "Name=tag:Name,Values=openclaw" "Name=instance-state-name,Values=running" \
+            --query 'Reservations[0].Instances[0].InstanceId' \
+            --output text)
+          if [ "$INSTANCE_ID" == "None" ] || [ -z "$INSTANCE_ID" ]; then
+            echo "::error::No running OpenClaw instance found"
             exit 1
           fi
-
-      - name: Read instance id
-        id: tf
-        working-directory: ${{ env.TF_WORKING_DIR }}
-        run: echo "instance_id=$(tofu output -raw instance_id)" >> "$GITHUB_OUTPUT"
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+          echo "Found instance: $INSTANCE_ID"
 
       - name: Deploy bootstrap scripts
         run: |
           aws ssm send-command \
             --document-name "AWS-RunShellScript" \
-            --targets "Key=instanceids,Values=${{ steps.tf.outputs.instance_id }}" \
+            --targets "Key=instanceids,Values=${{ steps.instance.outputs.instance_id }}" \
             --parameters 'commands=[
               "sudo bash /var/lib/openclaw/workspace/openclaw/infra/bootstrap/deploy.sh"
             ]' \
@@ -72,7 +54,7 @@ jobs:
         run: |
           aws ssm send-command \
             --document-name "AWS-RunShellScript" \
-            --targets "Key=instanceids,Values=${{ steps.tf.outputs.instance_id }}" \
+            --targets "Key=instanceids,Values=${{ steps.instance.outputs.instance_id }}" \
             --parameters 'commands=[
               "sudo systemctl restart openclawd"
             ]' \
