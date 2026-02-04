@@ -1,12 +1,43 @@
 import type { SessionSendPolicyConfig } from "./types.base.js";
 
-export type MemoryBackend = "builtin" | "qmd";
+export type MemoryBackend = "builtin" | "qmd" | "structured";
 export type MemoryCitationsMode = "auto" | "on" | "off";
 
 export type MemoryConfig = {
   backend?: MemoryBackend;
   citations?: MemoryCitationsMode;
   qmd?: MemoryQmdConfig;
+  structured?: StructuredMemoryConfig;
+};
+
+// Structured memory store configuration
+export type StructuredMemoryConfig = {
+  enabled?: boolean;
+  sync?: {
+    markdown?: boolean;
+    bidirectional?: boolean;
+    debounceMs?: number;
+    watchFiles?: boolean;
+  };
+  compression?: {
+    enabled?: boolean;
+    dailyToWeekly?: string; // Duration like "7d"
+    weeklyToMonthly?: string; // Duration like "30d"
+    archiveAfter?: string; // Duration like "90d"
+    minMemoriesForSummary?: number;
+  };
+  importance?: {
+    enabled?: boolean;
+    decayFactor?: number;
+    accessBoost?: number;
+    recencyBoost?: number;
+    manualBoost?: number;
+  };
+  query?: {
+    importanceWeight?: number;
+    recencyWeight?: number;
+    defaultLimit?: number;
+  };
 };
 
 export type MemoryQmdConfig = {
