@@ -75,10 +75,10 @@ export class StructuredMemoryBackend implements MemorySearchManager {
       store: this.store,
       workspaceDir: params.workspaceDir,
       config: {
-        enabled: structuredConfig.sync?.markdown ?? true,
-        bidirectional: structuredConfig.sync?.bidirectional ?? true,
-        debounceMs: structuredConfig.sync?.debounceMs ?? 1500,
-        watchFiles: structuredConfig.sync?.watchFiles ?? true,
+        enabled: (structuredConfig.sync?.markdown ?? true) as boolean,
+        bidirectional: (structuredConfig.sync?.bidirectional ?? true) as boolean,
+        debounceMs: (structuredConfig.sync?.debounceMs ?? 1500) as number,
+        watchFiles: (structuredConfig.sync?.watchFiles ?? true) as boolean,
       },
       db: this.db,
     });
@@ -242,7 +242,7 @@ export class StructuredMemoryBackend implements MemorySearchManager {
     // Recalculate importance scores
     this.store.recalculateImportance();
 
-    log.debug("Sync complete", result);
+    log.debug("Sync complete", { ...result });
   }
 
   /**

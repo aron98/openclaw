@@ -358,7 +358,7 @@ export class StructuredMemoryStore {
     if (!existing) return null;
 
     const sets: string[] = [];
-    const values: unknown[] = [];
+    const values: (string | number | null)[] = [];
 
     if (updates.content !== undefined) {
       sets.push("content = ?");
@@ -472,9 +472,10 @@ export class StructuredMemoryStore {
 
     // Pagination
     sql += " LIMIT ? OFFSET ?";
-    values.push(limit, offset);
 
-    const rows = this.db.prepare(sql).all(...values) as StructuredMemoryRow[];
+    const rows = this.db
+      .prepare(sql)
+      .all(...values, limit, offset) as unknown as StructuredMemoryRow[];
     return rows.map((row) => this.rowToMemory(row));
   }
 
@@ -660,7 +661,7 @@ export class StructuredMemoryStore {
          ORDER BY created_at ASC
          LIMIT ?`,
       )
-      .all(olderThan, compressionLevel, limit) as StructuredMemoryRow[];
+      .all(olderThan, compressionLevel, limit) as unknown as StructuredMemoryRow[];
 
     return rows.map((row) => this.rowToMemory(row));
   }
