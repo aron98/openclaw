@@ -30,7 +30,7 @@ jobs:
         run: |
           INSTANCE_ID=$(aws ec2 describe-instances \
             --region ${{ env.AWS_REGION }} \
-            --filters "Name=tag:Name,Values=openclaw" "Name=instance-state-name,Values=running" \
+            --filters "Name=tag:Name,Values=openclaw-gateway" "Name=instance-state-name,Values=running" \
             --query 'Reservations[0].Instances[0].InstanceId' \
             --output text)
           if [ "$INSTANCE_ID" == "None" ] || [ -z "$INSTANCE_ID" ]; then
