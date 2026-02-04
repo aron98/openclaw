@@ -46,7 +46,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --targets "Key=instanceids,Values=${{ steps.instance.outputs.instance_id }}" \
             --parameters 'commands=[
-              "sudo rm -r /opt/openclaw/runtime"
+              "sudo rm -r /opt/openclaw/runtime",
               "sudo mkdir -p /opt/openclaw/runtime",
               "sudo git clone --depth 1 https://github.com/aron98/openclaw.git /opt/openclaw/runtime",
               "sudo bash /opt/openclaw/runtime/infra/bootstrap/deploy.sh"
