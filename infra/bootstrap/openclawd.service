@@ -32,9 +32,6 @@ EnvironmentFile=-/var/lib/openclaw/openclawd.env
 # Update PATH to include user-local npm global bin
 Environment=PATH=/var/lib/openclaw/.npm-global/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 
-# Refresh runtime from dev repo before starting
-ExecStartPre=/usr/local/bin/openclaw-refresh
-
 # Sync secrets from AWS Secrets Manager
 ExecStartPre=/usr/local/bin/openclaw-sync-secrets arn:aws:secretsmanager:eu-central-1:548135083003:secret:openclaw/prod-nTa8N2
 
