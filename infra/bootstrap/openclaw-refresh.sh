@@ -45,7 +45,7 @@ git -C "$OPENCLAW_REPO_DIR" pull --ff-only origin "$OPENCLAW_REPO_REF"
 current_rev="$(git -C "$OPENCLAW_REPO_DIR" rev-parse HEAD)"
 last_rev=""
 if [ -f "$OPENCLAW_BUILD_MARKER" ]; then
-  last_rev="$(cat "$OPENCLAW_BUILD_MARKER)"
+  last_rev="$(cat "$OPENCLAW_BUILD_MARKER")"
 fi
 
 if [ "$current_rev" != "$last_rev" ] || [ ! -d "$OPENCLAW_RUNTIME_DIR/dist" ]; then
