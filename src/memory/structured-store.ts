@@ -274,7 +274,27 @@ export class StructuredMemoryStore {
     workspaceDir: string;
   }) {
     this.db = params.db;
-    this.config = { ...DEFAULT_STRUCTURED_MEMORY_CONFIG, ...params.config };
+    // Deep merge config with defaults
+    this.config = {
+      ...DEFAULT_STRUCTURED_MEMORY_CONFIG,
+      ...params.config,
+      sync: {
+        ...DEFAULT_STRUCTURED_MEMORY_CONFIG.sync,
+        ...params.config?.sync,
+      },
+      compression: {
+        ...DEFAULT_STRUCTURED_MEMORY_CONFIG.compression,
+        ...params.config?.compression,
+      },
+      importance: {
+        ...DEFAULT_STRUCTURED_MEMORY_CONFIG.importance,
+        ...params.config?.importance,
+      },
+      query: {
+        ...DEFAULT_STRUCTURED_MEMORY_CONFIG.query,
+        ...params.config?.query,
+      },
+    };
     this.agentId = params.agentId;
     this.workspaceDir = params.workspaceDir;
 
@@ -470,12 +490,11 @@ export class StructuredMemoryStore {
     };
     sql += ` ORDER BY ${orderMap[orderBy]}`;
 
-    // Pagination
+    // Pagination - add limit and offset to values array
     sql += " LIMIT ? OFFSET ?";
+    values.push(limit, offset);
 
-    const rows = this.db
-      .prepare(sql)
-      .all(...values, limit, offset) as unknown as StructuredMemoryRow[];
+    const rows = this.db.prepare(sql).all(...values) as unknown as StructuredMemoryRow[];
     return rows.map((row) => this.rowToMemory(row));
   }
 
