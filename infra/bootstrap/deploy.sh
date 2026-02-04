@@ -5,10 +5,17 @@ set -euo pipefail
 # Deploys/updates system scripts from the repo to system locations
 # Run manually or via GitHub Actions after merge to main
 
-OPENCLAW_REPO_DIR="${OPENCLAW_REPO_DIR:-/var/lib/openclaw/workspace/openclaw}"
+OPENCLAW_REPO_DIR="${OPENCLAW_REPO_DIR:-/opt/openclaw/runtime}"
 BOOTSTRAP_DIR="$OPENCLAW_REPO_DIR/infra/bootstrap"
 
 echo "Deploying OpenClaw bootstrap scripts..."
+
+pnpm install --frozen-lockfile
+sudo pnpm ui:build || echo "UI build skipped or failed, continuing..."
+sudo pnpm build
+sudo chown -R root:openclaw "$OPENCLAW_REPO_DIR"
+sudo chmod -R 755 "$OPENCLAW_REPO_DIR"
+sudo chmod +x "$OPENCLAW_REPO_DIR/openclaw.mjs" 2>/dev/null || true
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
@@ -22,15 +29,6 @@ if [ ! -d "$BOOTSTRAP_DIR" ]; then
   exit 1
 fi
 
-# Deploy openclaw-refresh script
-if [ -f "$BOOTSTRAP_DIR/openclaw-refresh.sh" ]; then
-  echo "Deploying openclaw-refresh..."
-  cp "$BOOTSTRAP_DIR/openclaw-refresh.sh" /usr/local/bin/openclaw-refresh
-  chmod +x /usr/local/bin/openclaw-refresh
-else
-  echo "Warning: openclaw-refresh.sh not found in bootstrap directory"
-fi
-
 # Deploy openclaw-node-setup script
 if [ -f "$BOOTSTRAP_DIR/openclaw-node-setup.sh" ]; then
   echo "Deploying openclaw-node-setup..."
@@ -38,15 +36,6 @@ if [ -f "$BOOTSTRAP_DIR/openclaw-node-setup.sh" ]; then
   chmod +x /usr/local/bin/openclaw-node-setup
 else
   echo "Warning: openclaw-node-setup.sh not found in bootstrap directory"
-fi
-
-# Deploy openclaw-runtime-update script
-if [ -f "$BOOTSTRAP_DIR/openclaw-runtime-update.sh" ]; then
-  echo "Deploying openclaw-runtime-update..."
-  cp "$BOOTSTRAP_DIR/openclaw-runtime-update.sh" /usr/local/bin/openclaw-runtime-update
-  chmod +x /usr/local/bin/openclaw-runtime-update
-else
-  echo "Warning: openclaw-runtime-update.sh not found in bootstrap directory"
 fi
 
 # Deploy systemd service file
