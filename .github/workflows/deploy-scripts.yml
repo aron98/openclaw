@@ -1,4 +1,4 @@
-name: Deploy Infra
+name: Deploy Scripts
 
 on:
   push:
@@ -23,16 +23,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: OpenTofu Init
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+
+      - name: OpenTofu Init (for reading state)
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           tofu init \
@@ -41,9 +41,17 @@ jobs:
             -backend-config="region=${AWS_REGION}" \
             -backend-config="dynamodb_table=${TF_STATE_TABLE}"
 
-      - name: OpenTofu Apply
+      - name: Detect Infrastructure Drift
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: tofu apply -auto-approve
+        run: |
+          echo "Checking for infrastructure drift..."
+          tofu plan -detailed-exitcode || EXIT_CODE=$?
+          if [ "${EXIT_CODE:-0}" -eq 2 ]; then
+            echo "::warning::Infrastructure drift detected! Run 'tofu apply' locally to reconcile."
+          elif [ "${EXIT_CODE:-0}" -eq 1 ]; then
+            echo "::error::Terraform plan failed"
+            exit 1
+          fi
 
       - name: Read instance id
         id: tf
@@ -57,7 +65,8 @@ jobs:
             --targets "Key=instanceids,Values=${{ steps.tf.outputs.instance_id }}" \
             --parameters 'commands=[
               "sudo bash /var/lib/openclaw/workspace/openclaw/infra/bootstrap/deploy.sh"
-            ]'
+            ]' \
+            --comment "Deploy OpenClaw bootstrap scripts"
 
       - name: Restart openclawd
         run: |
@@ -66,4 +75,5 @@ jobs:
             --targets "Key=instanceids,Values=${{ steps.tf.outputs.instance_id }}" \
             --parameters 'commands=[
               "sudo systemctl restart openclawd"
-            ]'
+            ]' \
+            --comment "Restart OpenClaw after bootstrap update"
