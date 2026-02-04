@@ -11,11 +11,11 @@ BOOTSTRAP_DIR="$OPENCLAW_REPO_DIR/infra/bootstrap"
 echo "Deploying OpenClaw bootstrap scripts..."
 
 pnpm install --frozen-lockfile
-sudo pnpm ui:build || echo "UI build skipped or failed, continuing..."
-sudo pnpm build
-sudo chown -R root:openclaw "$OPENCLAW_REPO_DIR"
-sudo chmod -R 755 "$OPENCLAW_REPO_DIR"
-sudo chmod +x "$OPENCLAW_REPO_DIR/openclaw.mjs" 2>/dev/null || true
+pnpm ui:build || echo "UI build skipped or failed, continuing..."
+pnpm build
+chown -R root:openclaw "$OPENCLAW_REPO_DIR"
+chmod -R 755 "$OPENCLAW_REPO_DIR"
+chmod +x "$OPENCLAW_REPO_DIR/openclaw.mjs" 2>/dev/null || true
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
