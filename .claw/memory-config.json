@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "memory": {
+    "structuredStore": {
+      "enabled": true,
+      "backend": "sqlite",
+      "path": ".claw/memory.db",
+      "syncInterval": 300
+    },
+    "compression": {
+      "enabled": true,
+      "dailyRetentionDays": 30,
+      "weeklyRetentionWeeks": 12,
+      "monthlyRetentionMonths": 24,
+      "compressionThreshold": 0.1
+    },
+    "importanceScoring": {
+      "enabled": true,
+      "decayFactor": 0.95,
+      "boostOnAccess": 0.1,
+      "minImportance": 0.01
+    },
+    "maintenance": {
+      "autoSummarize": true,
+      "summarizeSchedule": "weekly",
+      "pruneOldMemories": true,
+      "pruneThresholdDays": 365
+    }
+  },
+  "heartbeat": {
+    "memoryMaintenance": {
+      "enabled": true,
+      "checkInterval": 3600
+    }
+  }
+}
