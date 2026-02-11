@@ -11,7 +11,7 @@ TimeoutStartSec=20min
 
 # State and config directories
 Environment=OPENCLAW_STATE_DIR=/var/lib/openclaw
-Environment=OPENCLAW_CONFIG_PATH=/var/lib/openclaw/openclaw.json
+Environment=OPENCLAW_CONFIG_PATH=/var/lib/openclaw/.openclaw/openclaw.json
 
 # Repository locations
 # DEV_REPO: Where the agent reads source code (workspace, read-only for runtime)
